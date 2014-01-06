@@ -76,22 +76,28 @@ def mainloop():
 		if event["name"] == "click":
 			id = event["data"]["id"]
 			if id == "charData":
+				droid.dialogCreateSpinnerProgress("Loading", "Loading...")
+				droid.dialogShow()
 				c = CharpaneRequest(s)
 				response = c.doRequest()
 				title = "Character data"
 				message = ""
 				for key in response.keys():
 					message += "%s: %s\n" % (key, response[key])
+				droid.dialogDismiss()
 				droid.dialogCreateAlert(title, message)
 				droid.dialogSetPositiveButtonText("OK")
 				droid.dialogShow()
 	 	 	elif id == "inventory":
+				droid.dialogCreateSpinnerProgress("Loading", "Loading...")
+				droid.dialogShow()
 	 	 	 	i = InventoryRequest(s)
 	 	 	 	response = i.doRequest()
 	 	 	 	title = "Inventory"
 	 	 	 	message = ""
 	 	 	 	for key in response["items"]:
 	 	 	 	 	message += "%s: %s\n" % (key["name"], key["quantity"])
+				droid.dialogDismiss()
 	 	 	 	droid.dialogCreateAlert(title, message)
 	 	 	 	droid.dialogSetPositiveButtonText("OK")
 	 	 	 	droid.dialogShow()
