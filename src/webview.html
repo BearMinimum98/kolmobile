@@ -108,7 +108,7 @@
 			
 			
 			//Login layout
-			var login = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="login.handleLogin();return false;"><h2 class="form-signin-heading" id="banner">KoLMobile</h2><input type="text" class="textfield form-control" placeholder="username" required="required" autofocus="autofocus" id="user" autocomplete="off" spellcheck="false" /><input type="password" class="textfield form-control" placeholder="password" required="required" id="pass" /><button class="btn btn-lg btn-primary btn-block" type="submit">Login</button></form><form class="form-signin" role="form" onsubmit="util.exit();return false;"><button id="exit" class="btn btn-lg btn-primary btn-block" type="submit">Exit</button></form></div></div>', function() {}, function() {});
+			var login = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="login.handleLogin();return false;"><h2 class="form-signin-heading" id="banner">KoLMobile</h2><input type="text" class="textfield form-control" placeholder="username" required="required" autofocus="autofocus" id="user" autocomplete="off" spellcheck="false" /><input type="password" class="textfield form-control" placeholder="password" required="required" id="pass" /><button class="btn btn-lg btn-primary btn-block" type="submit">Login</button></form><form class="form-signin" role="form" onsubmit="util.exit();return false;"><button id="exit" class="btn btn-lg btn-primary btn-block" type="submit">Exit</button></form></div></div>');
 			login.extend("handleLogin", function() {
 				droid.objectPost("login", {"user": document.getElementById("user").value, "pass": document.getElementById("pass").value});
 				droid.registerCallback("loginResult", function(e) {
@@ -121,7 +121,7 @@
 			});
 
 			//main menu layout
-			var main = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="return false;"><button class="btn btn-lg btn-primary btn-block" onclick="main.requestCharData()">Character Data</button><button class="btn btn-lg btn-primary btn-block" onclick="main.requestInventory()">Inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.findInInventory()">Find in inventory</button></form><form class="form-signin" role="form" onsubmit="util.exit();return false;"><button id="exit" class="btn btn-lg btn-primary btn-block" type="submit">Exit</button></form></div></div>', function() {}, function() {});
+			var main = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="return false;"><button class="btn btn-lg btn-primary btn-block" onclick="main.requestCharData()">Character Data</button><button class="btn btn-lg btn-primary btn-block" onclick="main.requestInventory()">Inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.findInInventory()">Find in inventory</button></form><form class="form-signin" role="form" onsubmit="util.exit();return false;"><button id="exit" class="btn btn-lg btn-primary btn-block" type="submit">Exit</button></form></div></div>');
 			main.extend("requestCharData", function() {
 					droid.eventPost("charData", "");
 			});
