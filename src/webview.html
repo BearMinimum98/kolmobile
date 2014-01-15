@@ -95,7 +95,13 @@
 			*  - layout: This is the HTML code for the layout
 			*  - setup: This is the function that is called after the layout is changed, so the layout may add event handlers and the like. Should never be called directly.
 			*  - cleanup: This is the function called when the layout is destroyed. It is here for cleanup work, such as removing event handlers and ending timers. Should never be called directly.
-			* Layouts can be extended with functions or variables by calling extend.
+			* Layouts can be extended with functions or variables by calling extend. Example:
+			* var example = new Layout();
+			* example.extend("functionName", function(arg1, arg2) {
+			* 	//code here
+			* });
+			* //call the function here
+			* example.functionName("foo", "bar");
 			*/
 			function Layout(layout, setup, cleanup) {
 				this.layout = layout;
