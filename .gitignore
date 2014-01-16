@@ -1,39 +1,20 @@
-*.py[cod]
+# built application files
+*.apk
+*.ap_
 
-# C extensions
-*.so
+# files for the dex VM
+*.dex
 
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-.installed.cfg
-lib
-lib64
-__pycache__
+# Java class files
+*.class
 
-# Installer logs
-pip-log.txt
+# generated files
+proj/bin/
+proj/gen/
 
-# Unit test / coverage reports
-.coverage
-.tox
-nosetests.xml
+# Local configuration file (sdk path, etc)
+proj/local.properties
 
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
-# Eclipse
-.settings
+# Eclipse project files
+proj/.classpath
+proj/.project
