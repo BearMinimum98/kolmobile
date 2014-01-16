@@ -17,18 +17,18 @@
 			article,aside,details,figcaption,figure,footer,header,hgroup,nav,section,summary{display:block}audio,canvas,video{display:inline-block}audio:not([controls]){display:none;height:0}[hidden]{display:none}html{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}body{margin:0}a:focus{outline:thin dotted}a:active,a:hover{outline:0}h1{font-size:2em}abbr[title]{border-bottom:1px dotted}b,strong{font-weight:700}dfn{font-style:italic}mark{background:#ff0;color:#000}code,kbd,pre,samp{font-family:monospace,serif;font-size:1em}pre{white-space:pre;white-space:pre-wrap;word-wrap:break-word}q{quotes:"\201C" "\201D" "\2018" "\2019"}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sup{top:-.5em}sub{bottom:-.25em}img{border:0}svg:not(:root){overflow:hidden}figure{margin:0}fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}legend{border:0;padding:0}button,input,select,textarea{font-family:inherit;font-size:100%;margin:0}button,input{line-height:normal}button,html input[type=button],input[type=reset],input[type=submit]{-webkit-appearance:button;cursor:pointer}button[disabled],input[disabled]{cursor:default}input[type=checkbox],input[type=radio]{box-sizing:border-box;padding:0}input[type=search]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none}button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}textarea{overflow:auto;vertical-align:top}table{border-collapse:collapse;border-spacing:0}body,html{font:16px Roboto,Arial,sans-serif;color:#333;}#action-bar{background-color:#ddd;height:48px;position:fixed;top:0;width:100%;z-index:50;padding:0;margin:-2px 0 0 0;outline:0;border-bottom:1px solid #9B9B9B;border-bottom-color:rgba(155,155,155,.49);-webkit-box-shadow:0 0 0 rgba(111,151,182,.5) inset,0 -1px 0 rgba(111,151,182,.2) inset,0 1px 1px rgba(0,0,0,.2);-moz-box-shadow:0 0 0 rgba(111,151,182,.5) inset,0 -1px 0 rgba(111,151,182,.2) inset,0 1px 1px rgba(0,0,0,.2);-ms-box-shadow:0 0 0 rgba(111,151,182,.5) inset,0 -1px 0 rgba(111,151,182,.2) inset,0 1px 1px rgba(0,0,0,.2);-o-box-shadow:0 0 0 rgba(111,151,182,.5) inset,0 -1px 0 rgba(111,151,182,.2) inset,0 1px 1px rgba(0,0,0,.2);box-shadow:0 0 0 rgba(111,151,182,.5) inset,0 -1px 0 rgba(111,151,182,.2) inset,0 1px 1px rgba(0,0,0,.2)}#action-bar img{vertical-align:middle}#action-bar #left,#action-bar #right{padding:0;margin:0}#action-bar #left{float:left}#action-bar #right{float:right}#action-bar #left li,#action-bar #right li{float:left;margin:0;list-style:none}#action-bar #right li a{width:44px;text-align:center}#action-bar #left li a,#action-bar #right li a{font-size:18px;text-decoration:none;color:#333;height:48px;display:table-cell;vertical-align:middle}#action-bar-menu{padding:0;display:none;right:5px;top:48px;float:left;background-color:#efefef;position:fixed}#action-bar-menu ul{padding:0;margin:0}#action-bar-menu li{border-top:1px solid #d6d7d6;list-style:none}#action-bar-menu li:hover{background-color:#ddd}#action-bar-menu li a,#action-bar-menu li a:visited{width:140px;display:block;padding:12px;margin:0;color:#333;text-decoration:none}#main_cnt{margin:50px 0 0}.cnt{background-color:#fff;margin:2px 0 10px;padding:1px 20px;-webkit-box-shadow:0 2px 3px rgba(0,0,0,.2),0 1px 0 rgba(255,255,255,.9) inset;-moz-box-shadow:0 2px 3px rgba(0,0,0,.2),0 1px 0 rgba(255,255,255,.9) inset;-ms-box-shadow:0 2px 3px rgba(0,0,0,.2),0 1px 0 rgba(255,255,255,.9) inset;-o-box-shadow:0 2px 3px rgba(0,0,0,.2),0 1px 0 rgba(255,255,255,.9) inset;box-shadow:0 2px 3px rgba(0,0,0,.2),0 1px 0 rgba(255,255,255,.9) inset}.cnt p{font-size:16px;line-height:24px}
 		</style>
 		<script type="text/javascript">
-			/*var droid = new Android();
+			var droid = new Android();
 			droid.objectPost = function(name, obj) {
 				droid.eventPost(name, JSON.stringify(obj));
-			};*/
+			};
 			
 			//All around utils
-			// droid.eventPost("getSysPath", "");
+			droid.eventPost("getSysPath", "");
 			var util = {
 				lastLayout: new Layout(null, null, null, new ActionBar()),
 				lastActionBar: new ActionBar(),
 				defaultActionBar: new ActionBar(),
-				// sysPath: droid.eventWaitFor("sysPath").result.data + "/",
+				sysPath: droid.eventWaitFor("sysPath").result.data + "/",
 				exit: function() {
 					droid.eventPost("exit", "");
 				},
