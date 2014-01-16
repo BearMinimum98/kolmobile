@@ -126,8 +126,7 @@ public class Utils {
 		       if(file.getName().endsWith(".so") || file.getName().endsWith(".xml") || file.getName().endsWith(".py") || file.getName().endsWith(".pyc") || file.getName().endsWith(".pyo")) {
 			       FileUtils.chmod(file, 0755);
 		       }
-
-		       Log.d(GlobalConstants.LOG_TAG,"Unzip extracted " + dest + zipEntryName);
+		       
 		      }
 		      
 		      zipInputStream.close();

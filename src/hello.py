@@ -1,4 +1,4 @@
-import android, sys, json
+import android, sys, json, time
 from kol.Session import Session
 from kol.request.CharpaneRequest import CharpaneRequest
 from kol.request.InventoryRequest import InventoryRequest
@@ -44,6 +44,7 @@ def eventloop():
 				droid.dialogDismiss()
 		elif event["name"] == "requestLoginInfo":
 			objectPost("loginInfo", {"user": droid.prefGetValue("user"), "pass": droid.prefGetValue("pass")})
+			droid.eventPost("sysPath", sys.path[0])
 		elif event["name"] == "exit":
 			sys.exit()
 			return
@@ -160,9 +161,9 @@ def mainloop():
 			return
 
 droid.webViewShow(sys.path[0] + "/webview.html")
-droid.dialogCreateAlert("KoLMobile", "Welcome to KoLMobile v0.1. This script is in alpha, and will (probably) not work as expected.")
-droid.dialogSetPositiveButtonText('Continue')
-droid.dialogShow()
+sysPathEvent = droid.eventWaitFor("getSysPath")
+time.sleep(3)
+droid.eventPost("sysPath", sys.path[0])
 eventloop()
 if s.isConnected:
 	mainloop()
