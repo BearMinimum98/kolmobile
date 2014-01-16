@@ -10,7 +10,6 @@
 
 # generated files
 proj/bin/
-proj/gen/
 
 # Local configuration file (sdk path, etc)
 proj/local.properties
