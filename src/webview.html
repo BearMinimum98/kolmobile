@@ -6,6 +6,14 @@
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="black">
 		<script type="text/javascript">
+			//For testing on computer without the Android constructor
+			if (typeof Android == "undefined") {
+				window["Android"] = function() {
+					this.eventPost = function() {};
+					this.eventWaitFor = function() {return {result: {data: "C:\\Users\\Kevin\\Documents\\GitHub\\kolmobile\\src"}};};
+					this.registerCallBack = function() {};
+				};
+			}
 			var droid = new Android();
 			droid.objectPost = function(name, obj) {
 				droid.eventPost(name, JSON.stringify(obj));
@@ -30,18 +38,19 @@
 			*  - setup: Function to call when layout is rendered
 			*  - cleanup: Function to call when layout is destroyed
 			*  - actionBar: action bar to use for this layout, if null, default will be used
+			*  - drawer: drawer to use for this layout, if null, default will be used
 			*/
-			function Layout(layout, setup, cleanup, actionBar) {
+			function Layout(layout, setup, cleanup, actionBar, drawer) {
 				this.layout = layout;
 				(setup == null) ? (this.setup = function() {}) : (this.setup = setup);
 				(cleanup == null) ? (this.cleanup = function() {}) : (this.cleanup = cleanup);
 				(actionBar == null) ? (this.actionBar = util.defaultActionBar) : (this.actionBar = actionBar);
+				(drawer == null) ? (this.drawer = util.defaultDrawer) : (this.drawer = drawer);
 				this.extend = function(func, code) {
 					this[func] = code;
 				};
 				this.render = function() {
 					document.getElementById("container").innerHTML = this.layout;
-					(this.actionbar != null) ? (this.actionBar.render()) : (util.defaultActionBar.render());
 				}
 			}
 			
@@ -49,19 +58,12 @@
 			* Arguments:
 			*  - left: Array of HTMLLiElements for left part of action bar
 			*  - right: Array of HTMLLiElements for right part of action bar
-			*  - options: Array of HTMLLiElement for the menu actions
 			*  - setup: Function to call when layout is rendered
 			*  - cleanup: Function to call when layout is destroyed
 			*/
-			function ActionBar(left, right, options, setup, cleanup) {
-				var defaults = {
-					left: [],
-					right: [],
-					options: []
-				};
-				(left == null) ? (this.left = defaults.left) : (this.left = left);
-				(right == null) ? (this.right = defaults.right) : (this.right = right);
-				(options == null) ? (this.options = defaults.options) : (this.options = options);
+			function ActionBar(left, right, setup, cleanup) {
+				(left == null) ? (this.left = []) : (this.left = left);
+				(right == null) ? (this.right = []) : (this.right = right);
 				(setup == null) ? (this.setup = function() {}) : (this.setup = setup);
 				(cleanup == null) ? (this.cleanup = function() {}) : (this.cleanup = cleanup);
 				this.extend = function(func, code) {
@@ -75,10 +77,6 @@
 					document.getElementById("right").innerHTML = "";
 					this.right.forEach(function(item) {
 						document.getElementById("right").appendChild(item);
-					});
-					document.getElementById("options").innerHTML = "";
-					this.options.forEach(function(item) {
-						document.getElementById("options").appendChild(item);
 					});
 				}
 			}
@@ -97,16 +95,21 @@
 					this[func] = code;
 				};
 				this.render = function() {
-					//TODO: add in render after writing CSS and adding element to body.
+					document.getElementById("drawerTabs").innerHTML = "";
+					this.options.forEach(function (e) {
+						document.getElementById("drawerTabs").appendChild(e);
+					});
 				}
 			}
 			
 			
 			//All around utils
 			var util = {
-				lastLayout: new Layout(null, null, null, new ActionBar()),
+				lastLayout: new Layout(null, null, null, new ActionBar(), new Drawer()),
 				lastActionBar: new ActionBar(),
+				lastDrawer: new Drawer(),
 				defaultActionBar: new ActionBar(),
+				defaultDrawer: new Drawer(),
 				sysPath: (function() {droid.eventPost("getSysPath", "");var path = droid.eventWaitFor("sysPath").result.data + "/";return path;})(),
 				exit: function() {
 					droid.eventPost("exit", "");
@@ -115,6 +118,8 @@
 					this.lastLayout["cleanup"]();
 					layout["render"]();
 					layout["setup"]();
+					this.showActionBar(layout["actionBar"]);
+					this.showDrawer(layout["drawer"]);
 					this.lastLayout = layout;
 				},
 				showActionBar: function(actionBar) {
@@ -122,6 +127,12 @@
 					actionBar["render"]();
 					actionBar["setup"]();
 					this.lastActionBar = actionBar;
+				},
+				showDrawer: function(drawer) {
+					this.lastDrawer["cleanup"]();
+					drawer["render"]();
+					drawer["setup"]();
+					this.lastDrawer = drawer;
 				},
 				addScript: function(url) {
 					var ele = document.createElement("script");
@@ -137,11 +148,12 @@
 					document.head.appendChild(ele);
 				},
 				about: function() {
-					alert("KoLMobile pre-release v0.1\nMade by KevZho (#2434890)");
+					alert("KoLMobile pre-release v0.1\n\nMade by KevZho (#2434890)");
 				}
 			}
 			
 			//Add CSS first
+			util.addCSS("css/drawer.css");
 			util.addCSS("css/roboto.css");
 			util.addCSS("css/normalize.css");
 			util.addCSS("css/bootstrap.css");
@@ -167,42 +179,45 @@
 				var rights = [];
 				var options = [];
 				var child = document.createElement("li");
-				child.innerHTML = '<a href="#"><img src="' + ((util.sysPath != undefined) ? (util.sysPath) : ('')) + 'img/ic_drawer.png" width="48" height="48" alt="Up"></a>';
+				child.innerHTML = '<a href="#"><img src="' + ((util.sysPath != undefined) ? (util.sysPath) : ('')) + 'img/ic_drawer.png" width="48" height="48" alt="Drawer" id="openDrawer"></a>';
 				lefts.push(child);
 				child = document.createElement("li");
-				child.innerHTML = '<a href="#"><img src="' + ((util.sysPath != undefined) ? (util.sysPath) : ('')) + 'img/app-logo.png" width="48" height="48" alt="Home"></a>';
+				child.innerHTML = '<a href="#"><img src="' + ((util.sysPath != undefined) ? (util.sysPath) : ('')) + 'img/app-logo.png" width="48" height="48" alt="Home" id="appIcon"></a>';
 				lefts.push(child);
 				child = document.createElement("li");
-				child.innerHTML = '<a href="#">KoLMobile</a>';
+				child.innerHTML = '<a href="#" id="appName">KoLMobile</a>';
 				lefts.push(child);
 				child = document.createElement("li");
 				child.innerHTML = '<a href="javascript:util.about();"><img src="' + ((util.sysPath != undefined) ? (util.sysPath) : ('')) + 'img/action-about.png" width="32" height="32" alt="About"></a>';
 				rights.push(child);
-				child = document.createElement("li");
-				child.innerHTML = '<a href="#"><img src="' + ((util.sysPath != undefined) ? (util.sysPath) : ('')) + 'img/action-overflow.png" width="32" height="32" id="action-bar-overflow" alt="Menu"></a>';
-				rights.push(child);
-				child = document.createElement("li");
-				child.innerHTML = '<a href="#">Option 1</a>';
-				options.push(child);
-				child = document.createElement("li");
-				child.innerHTML = '<a href="#">Option 2</a>';
-				options.push(child);
-				child = document.createElement("li");
-				child.innerHTML = '<a href="#">Option 3</a>';
-				options.push(child);
-				actionBar = new ActionBar(lefts, rights, options, function() {
-					document.getElementById("action-bar-overflow").onclick = function () {
-						$('#action-bar-menu').toggle();
+				actionBar = new ActionBar(lefts, rights, function() {
+					document.getElementById("openDrawer").onclick = function() {
+						$("#drawer").toggle();
+					};
+					document.getElementById("appIcon").onclick = function() {
+						$("#drawer").toggle();
+					};
+					document.getElementById("appName").onclick = function() {
+						$("#drawer").toggle();
 					};
 				}, function() {
-					document.getElementById("action-bar-overflow").onclick = null;
+					document.getElementById("openDrawer").onclick = null;
+					document.getElementById("appIcon").onclick = null;
+					document.getElementById("appName").onclick = null;
 				});
 				util.defaultActionBar = actionBar;
+				child = document.createElement("li");
+				child.onclick = function() {
+					util.exit();
+				};
+				child.innerHTML = 'Exit';
+				drawer = new Drawer([child], function() {}, function() {});
+				util.defaultDrawer = drawer;
 			})();
 			
 			
 			//Login layout
-			var login = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="login.handleLogin();return false;"><h2 class="form-signin-heading" id="banner">KoLMobile</h2><input type="text" class="textfield form-control" placeholder="username" required="required" autofocus="autofocus" id="user" autocomplete="off" spellcheck="false" /><input type="password" class="textfield form-control" placeholder="password" required="required" id="pass" /><button class="btn btn-lg btn-primary btn-block" type="submit">Login</button></form><form class="form-signin" role="form" onsubmit="util.exit();return false;"><button id="exit" class="btn btn-lg btn-primary btn-block" type="submit">Exit</button></form></div></div>');
+			var login = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="login.handleLogin();return false;"><h2 class="form-signin-heading" id="banner">KoLMobile</h2><input type="text" class="textfield form-control" placeholder="username" required="required" autofocus="autofocus" id="user" autocomplete="off" spellcheck="false" /><input type="password" class="textfield form-control" placeholder="password" required="required" id="pass" /><button class="btn btn-lg btn-primary btn-block" type="submit">Login</button></form></div></div>');
 			login.extend("handleLogin", function() {
 				droid.objectPost("login", {"user": document.getElementById("user").value, "pass": document.getElementById("pass").value});
 				droid.registerCallback("loginResult", function(e) {
@@ -215,7 +230,7 @@
 			});
 
 			//main menu layout
-			var main = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="return false;"><button class="btn btn-lg btn-primary btn-block" onclick="main.requestCharData()">Character Data</button><button class="btn btn-lg btn-primary btn-block" onclick="main.requestInventory()">Inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.findInInventory()">Find in inventory</button></form><form class="form-signin" role="form" onsubmit="util.exit();return false;"><button id="exit" class="btn btn-lg btn-primary btn-block" type="submit">Exit</button></form></div></div>');
+			var main = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="return false;"><button class="btn btn-lg btn-primary btn-block" onclick="main.requestCharData()">Character Data</button><button class="btn btn-lg btn-primary btn-block" onclick="main.requestInventory()">Inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.findInInventory()">Find in inventory</button></form></div></div>');
 			main.extend("requestCharData", function() {
 					droid.eventPost("charData", "");
 			});
@@ -271,11 +286,11 @@
 			</ul>
 			<ul id="right">
 			</ul>
-			<nav id="action-bar-menu">
-				<ul id="options">
-				</ul>
-			</nav>
 		</header>
+		<div id="drawer">
+			<ul id="drawerTabs">
+			</ul>
+		</div>
 		<div id="container" style="width:100%;height:100%;"></div>
 	</body>
 </html>

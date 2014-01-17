@@ -1,0 +1,43 @@
+#drawer {
+	height: 100%;
+	width: 300px;
+	z-index: 9;
+	position: absolute;
+	background: #555;
+	display: none;
+	top: 0px;
+	left: 0px;
+}
+#drawer ul {
+	padding:0;
+	margin:0;
+	margin-top:47px;
+}
+#drawer li {
+	border-bottom:2px solid #404040;
+	list-style:none;
+	color: #ddd;
+	font-size: 2em;
+	padding-left: 10px;
+}
+#drawer li:hover {
+	background-color:#888;
+	border-bottom:2px solid #888;
+	color: #fff;
+}
+#drawer li:active {
+	background-color: #444;
+	border-bottom:2px solid #444;
+}
+#drawer li a {
+	text-decoration: none;
+	color: inherit;
+}
+#drawer li a:hover {
+	text-decoration: none;
+	cursor: default;
+}
+#drawer li a:visited {
+	color:#ddd;
+	text-decoration:none;
+}
