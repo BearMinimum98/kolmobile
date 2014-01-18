@@ -2,6 +2,8 @@ import android, sys, json, time
 from kol.Session import Session
 from kol.request.CharpaneRequest import CharpaneRequest
 from kol.request.InventoryRequest import InventoryRequest
+from kol.request.MallItemSearchRequest import MallItemSearchRequest
+from kol.request.MallItemPurchaseRequest import MallItemPurchaseRequest
 from kol.Error import Error
 from kol.manager.ChatManager import ChatManager
 
@@ -28,15 +30,13 @@ def eventloop():
 					if s.isConnected:
 						droid.eventPost("loginResult", "success")
 						chatMgr = ChatManager(s)
+						droid.dialogDismiss()
 						return
 				except Error as e:
 					droid.dialogDismiss()
 					droid.eventPost("login", "fail")
 					droid.makeToast(e.msg)
 				except:
-					if droid.wifiGetConnectionInfo().result["network_id"] == -1:
-						droid.dialogDismiss()
-						droid.makeToast("WiFi not connected!")
 					droid.eventPost("login", "fail")
 				finally:
 					droid.dialogDismiss()
@@ -55,7 +55,7 @@ def objectPost(name, obj):
 def alertNotLoggedIn(exit):
 	if exit:
 		droid.dialogCreateAlert("Not logged in", "You are no longer connected to the server. KoLDroid will now quit.")
-		droid.dialogSetPositiveButtonText("Close")
+		droid.dialogSetPositiveButtonText("Quit")
 		droid.dialogShow()
 		response = droid.dialogGetResponse().result
 		sys.exit()
@@ -66,7 +66,7 @@ def alertNotLoggedIn(exit):
 		droid.dialogShow()
 		sys.exit()
 		return
-# TODO: rewrite mainloop() for use with webview
+
 def mainloop():
 	global s
 	global chatMgr
@@ -156,6 +156,51 @@ def mainloop():
 				droid.eventPost("sendChatResult", "success")
 			except Error as e:
 				droid.eventPost("sendChatResult", "fail")
+		elif id == "searchMall":
+			try:
+				m = MallItemSearchRequest(s, event["data"], numResults=5)
+				droid.dialogCreateSpinnerProgress("Searching...", "Searching for \"%s\"" % event["data"])
+				droid.dialogShow()
+				objectPost("searchMallResult", m.doRequest())
+				droid.dialogDismiss()
+			except Error as e:
+				alertNotLoggedIn(True)
+		elif id == "buyMall":
+			droid.dialogCreateInput("Purchase mall item", "Enter quantity to purchase", inputType="number")
+			droid.dialogSetPositiveButtonText("OK")
+			droid.dialogSetNegativeButtonText("Cancel")
+			droid.dialogShow()
+			response = droid.dialogGetResponse().result
+			evtdata = json.loads(event["data"])
+			if response.isdigit():
+				try:
+					m = MallItemPurchaseRequest(s, evtdata["storeId"], evtdata["id"], evtdata["price"], response)
+					droid.dialogCreateSpinnerProgress("Buying...", "Buying item(s)...")
+					droid.dialogShow()
+					response = m.doRequest()
+					droid.dialogDismiss()
+					droid.dialogCreateAlert("Results", "Spent %d meat" % response["meatSpent"])
+					droid.dialogSetPositiveButtonText("OK")
+					droid.dialogShow()
+				except Error as e:
+					if e.code == Error.NOT_ENOUGH_MEAT:
+						droid.dialogCreateAlert("Results", "Not enought meat!")
+						droid.dialogSetPositiveButtonText("OK")
+						droid.dialogShow()
+					elif e.code == Error.ITEM_NOT_FOUND:
+						droid.dialogCreateAlert("Results", "The shopowner changed the price.")
+						droid.dialogSetPositiveButtonText("OK")
+						droid.dialogShow()
+					elif e.code == Error.USER_IS_IGNORING:
+						droid.dialogCreateAlert("Results", "The shopowner has ignored you.")
+						droid.dialogSetPositiveButtonText("OK")
+						droid.dialogShow()
+					elif e.code == Error.LIMIT_REACHED:
+						droid.dialogCreateAlert("Results", "You have reached your limit for today already.")
+						droid.dialogSetPositiveButtonText("OK")
+						droid.dialogShow()
+					else:
+						alertNotLoggedIn(True)
 		elif id == "exit":
 			sys.exit()
 			return

@@ -11,7 +11,7 @@
 				window["Android"] = function() {
 					this.eventPost = function() {};
 					this.eventWaitFor = function() {return {result: {data: "C:\\Users\\Kevin\\Documents\\GitHub\\kolmobile\\src"}};};
-					this.registerCallBack = function() {};
+					this.registerCallback = function(foo, bar) {};
 				};
 			}
 			var droid = new Android();
@@ -230,7 +230,7 @@
 			});
 
 			//main menu layout
-			var main = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="return false;"><button class="btn btn-lg btn-primary btn-block" onclick="main.requestCharData()">Character Data</button><button class="btn btn-lg btn-primary btn-block" onclick="main.requestInventory()">Inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.findInInventory()">Find in inventory</button></form></div></div>');
+			var main = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="return false;"><button class="btn btn-lg btn-primary btn-block" onclick="main.requestCharData()">Character Data</button><button class="btn btn-lg btn-primary btn-block" onclick="main.requestInventory()">Inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.findInInventory()">Find in inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.showMall()">Search Mall</button></form></div></div>');
 			main.extend("requestCharData", function() {
 					droid.eventPost("charData", "");
 			});
@@ -242,6 +242,9 @@
 			});
 			main.extend("showChat", function() {
 				util.showLayout(chat);
+			});
+			main.extend("showMall", function() {
+				util.showLayout(mall);
 			});
 			
 			//chat layout
@@ -273,6 +276,30 @@
 			});
 			chat.extend("mainMenu", function() {
 				util.showLayout(main);
+			});
+			
+			//Mall layout
+			//TODO: Fix buying stuff
+			var mall = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="mall.searchMall(document.getElementById(\'search\').value);return false;"><h2 class="form-signin-heading" id="banner">Search Mall</h2><input type="text" class="textfield form-control" placeholder="search" required="required" autofocus="autofocus" id="search" autocomplete="off" spellcheck="false" /><button class="btn btn-lg btn-primary btn-block" type="submit">Search!</button></form></div><div class="container" id="result"><form class="form-signin" role="form" onsubmit="try{mall.buyItem(document.getElementById(\'selector\')[document.getElementById(\'selector\').selectedIndex]);return false;}catch(e) {return false;}"><select size="10" style="max-width:300px;width:300px;min-height:200px;" id="selector" required="required"><option>-Select an item-</option></select><button class="btn btn-lg btn-primary btn-block" type="submit">Buy</button></form></div></div>');
+			mall.extend("searchMall", function(item) {
+				droid.eventPost("searchMall", item);
+				droid.registerCallback("searchMallResult", function(e) {
+					response = JSON.parse(e.data)["results"];
+					response.forEach(function(e) {
+						document.getElementById("selector").innerHTML = "";
+						var option = document.createElement("option");
+						if (!e.limit) {
+							option.innerHTML = e.storeName + ": " + e.name + " " + e.quantity + "@" + e.price + " each";
+						} else {
+							option.innerHTML = e.storeName + ": " + e.name + " " + e.quantity + "@" + e.price + " each (limit " + e.limit + "/day)";
+						}
+						option.value = JSON.stringify({"price": e.price, "storeId": e.storeId, "id": e.id});
+						document.getElementById("selector").appendChild(option);
+					});
+				});
+			});
+			mall.extend("buyItem", function(which) {
+				droid.eventPost("buyMall", which.value);
 			});
 			
 			window.onload = function() {
