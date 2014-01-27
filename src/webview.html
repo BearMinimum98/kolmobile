@@ -280,13 +280,13 @@
 			
 			//Mall layout
 			//TODO: Fix buying stuff
-			var mall = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="mall.searchMall(document.getElementById(\'search\').value);return false;"><h2 class="form-signin-heading" id="banner">Search Mall</h2><input type="text" class="textfield form-control" placeholder="search" required="required" autofocus="autofocus" id="search" autocomplete="off" spellcheck="false" /><button class="btn btn-lg btn-primary btn-block" type="submit">Search!</button></form></div><div class="container" id="result"><form class="form-signin" role="form" onsubmit="try{mall.buyItem(document.getElementById(\'selector\')[document.getElementById(\'selector\').selectedIndex]);return false;}catch(e) {return false;}"><select size="10" style="max-width:300px;width:300px;min-height:200px;" id="selector" required="required"><option>-Select an item-</option></select><button class="btn btn-lg btn-primary btn-block" type="submit">Buy</button></form></div></div>');
+			var mall = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="mall.searchMall(document.getElementById(\'search\').value);return false;"><h2 class="form-signin-heading" id="banner">Search Mall</h2><input type="text" class="textfield form-control" placeholder="search" required="required" autofocus="autofocus" id="search" autocomplete="off" spellcheck="false" /><button class="btn btn-lg btn-primary btn-block" type="submit">Search!</button></form></div><div class="container" id="result"><form class="form-signin" role="form" onsubmit="try{mall.buyItem();return false;}catch(e) {return false;}"><select id="selector" required="required" class="select form-control"><option>-Select an item-</option></select><button class="btn btn-lg btn-primary btn-block" type="submit">Buy</button></form></div></div>');
 			mall.extend("searchMall", function(item) {
 				droid.eventPost("searchMall", item);
 				droid.registerCallback("searchMallResult", function(e) {
+					document.getElementById("selector").innerHTML = "";
 					response = JSON.parse(e.data)["results"];
 					response.forEach(function(e) {
-						document.getElementById("selector").innerHTML = "";
 						var option = document.createElement("option");
 						if (!e.limit) {
 							option.innerHTML = e.storeName + ": " + e.name + " " + e.quantity + "@" + e.price + " each";
@@ -298,8 +298,8 @@
 					});
 				});
 			});
-			mall.extend("buyItem", function(which) {
-				droid.eventPost("buyMall", which.value);
+			mall.extend("buyItem", function() {
+				droid.eventPost("buyMall", document.getElementById('selector')[document.getElementById('selector').selectedIndex].value);
 			});
 			
 			window.onload = function() {

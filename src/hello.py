@@ -158,7 +158,7 @@ def mainloop():
 				droid.eventPost("sendChatResult", "fail")
 		elif id == "searchMall":
 			try:
-				m = MallItemSearchRequest(s, event["data"], numResults=5)
+				m = MallItemSearchRequest(s, event["data"], numResults=10)
 				droid.dialogCreateSpinnerProgress("Searching...", "Searching for \"%s\"" % event["data"])
 				droid.dialogShow()
 				objectPost("searchMallResult", m.doRequest())
@@ -166,48 +166,41 @@ def mainloop():
 			except Error as e:
 				alertNotLoggedIn(True)
 		elif id == "buyMall":
-			droid.dialogCreateInput("Purchase mall item", "Enter quantity to purchase", inputType="number")
+			droid.dialogCreateInput("Purchase mall item", "Enter quantity to purchase", "0", "number")
 			droid.dialogSetPositiveButtonText("OK")
 			droid.dialogSetNegativeButtonText("Cancel")
 			droid.dialogShow()
-			response = droid.dialogGetResponse().result
-			evtdata = json.loads(event["data"])
-			if response.isdigit():
-				try:
-					m = MallItemPurchaseRequest(s, evtdata["storeId"], evtdata["id"], evtdata["price"], response)
-					droid.dialogCreateSpinnerProgress("Buying...", "Buying item(s)...")
-					droid.dialogShow()
-					response = m.doRequest()
-					droid.dialogDismiss()
-					droid.dialogCreateAlert("Results", "Spent %d meat" % response["meatSpent"])
-					droid.dialogSetPositiveButtonText("OK")
-					droid.dialogShow()
-				except Error as e:
-					if e.code == Error.NOT_ENOUGH_MEAT:
-						droid.dialogCreateAlert("Results", "Not enought meat!")
-						droid.dialogSetPositiveButtonText("OK")
-						droid.dialogShow()
-					elif e.code == Error.ITEM_NOT_FOUND:
-						droid.dialogCreateAlert("Results", "The shopowner changed the price.")
-						droid.dialogSetPositiveButtonText("OK")
-						droid.dialogShow()
-					elif e.code == Error.USER_IS_IGNORING:
-						droid.dialogCreateAlert("Results", "The shopowner has ignored you.")
-						droid.dialogSetPositiveButtonText("OK")
-						droid.dialogShow()
-					elif e.code == Error.LIMIT_REACHED:
-						droid.dialogCreateAlert("Results", "You have reached your limit for today already.")
-						droid.dialogSetPositiveButtonText("OK")
-						droid.dialogShow()
-					else:
-						alertNotLoggedIn(True)
+			resp = droid.dialogGetResponse().result
+			evtdata = None
+			try:
+				evtdata = json.loads(event["data"])
+				droid.log("evtdata loaded from string")
+				droid.log("evtdata = %s" % event["data"])
+				buy = MallItemPurchaseRequest(s, str(evtdata["storeId"]), evtdata["id"], evtdata["price"], str(resp))
+				droid.log("MIPR created")
+				droid.dialogCreateSpinnerProgress("Buying...", "Buying item(s)...")
+				droid.dialogShow()
+				buy.doRequest()
+				droid.dialogDismiss()
+				droid.dialogCreateAlert("Results", "Brought")
+				droid.dialogSetPositiveButtonText("OK")
+				droid.dialogShow()
+			except Error as e:
+				droid.dialogCreateAlert("Results", e.msg)
+				droid.dialogSetPositiveButtonText("OK")
+				droid.dialogShow()
+			except:
+				droid.dialogCreateAlert("WTF", "WTF?")
+				droid.dialogSetPositiveButtonText("OK")
+				droid.dialogShow()
 		elif id == "exit":
+			s.logout()
 			sys.exit()
 			return
 
 droid.webViewShow(sys.path[0] + "/webview.html")
 sysPathEvent = droid.eventWaitFor("getSysPath")
-time.sleep(3)
+time.sleep(2)
 droid.eventPost("sysPath", sys.path[0])
 eventloop()
 if s.isConnected:
