@@ -147,7 +147,7 @@ def mainloop():
 				droid.dialogShow()
 		elif id == "getNewChat":
 			try:
-				droid.eventPost("getNewChatResult", "|chatsplitter|".join(json.dumps(chat) for chat in chatMgr.getNewChatMessages()))
+				objectPost("getNewChatResult", chatMgr.getNewChatMessages())
 			except Error as e:
 				alertNotLoggedIn(True)
 		elif id == "sendChat":

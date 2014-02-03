@@ -110,6 +110,7 @@
 				lastDrawer: new Drawer(),
 				defaultActionBar: new ActionBar(),
 				defaultDrawer: new Drawer(),
+				defaultSubpageDrawer: new Drawer(),
 				sysPath: (function() {droid.eventPost("getSysPath", "");var path = droid.eventWaitFor("sysPath").result.data + "/";return path;})(),
 				exit: function() {
 					droid.eventPost("exit", "");
@@ -214,6 +215,22 @@
 				drawer = new Drawer([child], function() {}, function() {});
 				util.defaultDrawer = drawer;
 			})();
+			//Subpage drawer
+			(function() {
+				var child = document.createElement("li");
+				child.onclick = function() {
+					$("#drawer").toggle();
+					util.showLayout(main);
+				};
+				child.innerHTML = "Back";
+				var child2 = document.createElement("li");
+				child2.onclick = function() {
+					$("#drawer").toggle();
+					util.exit();
+				};
+				child2.innerHTML = 'Exit';
+				util.defaultSubpageDrawer = new Drawer([child, child2], function() {}, function() {});
+			})();
 			
 			
 			//Login layout
@@ -248,17 +265,12 @@
 			});
 			
 			//chat layout
-			var chat = new Layout('', function() {this.timedChatGet = setInterval(this.requestNewChats(), 2000);}, function() {clearInterval(this.timedChatGet);});
+			var chat = new Layout('', function() {this.timedChatGet = setInterval(this.requestNewChats(), 2000);}, function() {clearInterval(this.timedChatGet);}, null, util.defaultSubpageDrawer);
 			chat.extend("timedChatGet", null);
-			chat.extend("requestNewChats", function() {
+			chat.extend("requestNewChats", function(callback) {
 				droid.eventPost("getNewChat", "")
 				droid.registerCallback("getNewChatResult", function(e) {
-					var rawChats = e.data.split("|chatsplitter|");
-					var parsedChats = new Array();
-					for (chat in rawChats) {
-						parsedChats.push(JSON.parse(chat));
-					}
-					return parsedChats;
+					callback(JSON.parse(e.data));
 				});
 			});
 			chat.extend("displayChats", function(chats) {
@@ -279,8 +291,7 @@
 			});
 			
 			//Mall layout
-			//TODO: Fix buying stuff
-			var mall = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="mall.searchMall(document.getElementById(\'search\').value);return false;"><h2 class="form-signin-heading" id="banner">Search Mall</h2><input type="text" class="textfield form-control" placeholder="search" required="required" autofocus="autofocus" id="search" autocomplete="off" spellcheck="false" /><button class="btn btn-lg btn-primary btn-block" type="submit">Search!</button></form></div><div class="container" id="result"><form class="form-signin" role="form" onsubmit="try{mall.buyItem();return false;}catch(e) {return false;}"><select id="selector" required="required" class="select form-control"><option>-Select an item-</option></select><button class="btn btn-lg btn-primary btn-block" type="submit">Buy</button></form></div></div>');
+			var mall = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="mall.searchMall(document.getElementById(\'search\').value);return false;"><h2 class="form-signin-heading" id="banner">Search Mall</h2><input type="text" class="textfield form-control" placeholder="search" required="required" autofocus="autofocus" id="search" autocomplete="off" spellcheck="false" /><button class="btn btn-lg btn-primary btn-block" type="submit">Search!</button></form></div><div class="container" id="result"><form class="form-signin" role="form" onsubmit="try{mall.buyItem();return false;}catch(e) {return false;}"><select id="selector" required="required" class="select form-control"><option>-Select an item-</option></select><button class="btn btn-lg btn-primary btn-block" type="submit">Buy</button></form></div></div>', null, null, null, util.defaultSubpageDrawer);
 			mall.extend("searchMall", function(item) {
 				droid.eventPost("searchMall", item);
 				droid.registerCallback("searchMallResult", function(e) {
