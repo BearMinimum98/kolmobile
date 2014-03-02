@@ -164,7 +164,7 @@
 			util.addScript("scripts/jquery.min.js");
 			(function() {
 				function blockLoadBootStrap() {
-					if ($) {
+					if (typeof $ == "function") {
 						util.addScript("scripts/bootstrap.min.js");
 					} else {
 						setTimeout(blockLoadBootStrap, 50);
