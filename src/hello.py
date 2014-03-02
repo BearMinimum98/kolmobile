@@ -152,10 +152,17 @@ def mainloop():
 				alertNotLoggedIn(True)
 		elif id == "sendChat":
 			try:
-				chatMgr.sendChatMessage(event["data"])
+				data = json.loads(event["data"])
+				chatMgr["currentChannel"] = data["channel"]
+				chatMgr.sendChatMessage(data["message"])
 				droid.eventPost("sendChatResult", "success")
 			except Error as e:
 				droid.eventPost("sendChatResult", "fail")
+		elif id == "getChannels":
+			try:
+				pass
+			except Error as e:
+				alertNotLoggedIn(True)
 		elif id == "searchMall":
 			try:
 				m = MallItemSearchRequest(s, event["data"], numResults=10)

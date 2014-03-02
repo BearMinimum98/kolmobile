@@ -170,6 +170,7 @@
 						setTimeout(blockLoadBootStrap, 50);
 					}
 				}
+				blockLoadBootStrap();
 			})();
 			
 			
@@ -265,7 +266,7 @@
 			});
 			
 			//chat layout
-			var chat = new Layout('', function() {this.timedChatGet = setInterval(this.requestNewChats(), 2000);}, function() {clearInterval(this.timedChatGet);}, null, util.defaultSubpageDrawer);
+			var chat = new Layout('<div class="wrap"><select class="select form-control" id="chanselect"></select></div>', function() {this.timedChatGet = setInterval(this.requestNewChats(), 2000);}, function() {clearInterval(this.timedChatGet);}, null, util.defaultSubpageDrawer);
 			chat.extend("timedChatGet", null);
 			chat.extend("requestNewChats", function(callback) {
 				droid.eventPost("getNewChat", "")
@@ -277,12 +278,12 @@
 				// TODO: Add this in after layout is complete
 			});
 			chat.extend("sendChat", function(chat) {
-				droid.eventPost("sendChat", chat)
+				droid.objectPost("sendChat", {"message": chat, "channel": ""});
 				droid.registerCallback("sendChatResult", function(e) {
 					if (e.data == "success") {
 						chat.requestNewChats();
 					} else {
-						droid.eventPost("makeToast", "Chat send failed");
+						droid.eventPost("makeToast", "Failed to send chat message.");
 					}
 				});
 			});
