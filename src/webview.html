@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html style="height:100%;">
 	<head>
 		<title>KoLMobile</title>
 		<meta name="viewport" id="viewport" content="width=device-width, target-densitydpi=device-dpi, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
@@ -17,6 +17,11 @@
 			var droid = new Android();
 			droid.objectPost = function(name, obj) {
 				droid.eventPost(name, JSON.stringify(obj));
+			};
+			
+			function Extendable() {}
+			Extendable.prototype.extend = function(func, code) {
+				this[func] = code;
 			};
 			
 			
@@ -41,17 +46,20 @@
 			*  - drawer: drawer to use for this layout, if null, default will be used
 			*/
 			function Layout(layout, setup, cleanup, actionBar, drawer) {
+				Extendable.call(this);
 				this.layout = layout;
 				(setup == null) ? (this.setup = function() {}) : (this.setup = setup);
 				(cleanup == null) ? (this.cleanup = function() {}) : (this.cleanup = cleanup);
 				(actionBar == null) ? (this.actionBar = util.defaultActionBar) : (this.actionBar = actionBar);
 				(drawer == null) ? (this.drawer = util.defaultDrawer) : (this.drawer = drawer);
-				this.extend = function(func, code) {
-					this[func] = code;
-				};
-				this.render = function() {
-					document.getElementById("container").innerHTML = this.layout;
-				}
+			}
+			Layout.prototype = new Extendable();
+			Layout.prototype.constructor = Layout;
+			Layout.prototype.extend = function(func, code) {
+				this[func] = code;
+			};
+			Layout.prototype.render = function() {
+				document.getElementById("container").innerHTML = this.layout;
 			}
 			
 			/*
@@ -62,13 +70,12 @@
 			*  - cleanup: Function to call when layout is destroyed
 			*/
 			function ActionBar(left, right, setup, cleanup) {
+				Extendable.call(this);
 				(left == null) ? (this.left = []) : (this.left = left);
 				(right == null) ? (this.right = []) : (this.right = right);
 				(setup == null) ? (this.setup = function() {}) : (this.setup = setup);
 				(cleanup == null) ? (this.cleanup = function() {}) : (this.cleanup = cleanup);
-				this.extend = function(func, code) {
-					this[func] = code;
-				};
+				
 				this.render = function() {
 					document.getElementById("left").innerHTML = "";
 					this.left.forEach(function(item) {
@@ -80,6 +87,18 @@
 					});
 				}
 			}
+			ActionBar.prototype = new Extendable();
+			ActionBar.prototype.constructor = ActionBar;
+			ActionBar.prototype.render = function() {
+				document.getElementById("left").innerHTML = "";
+				this.left.forEach(function(item) {
+					document.getElementById("left").appendChild(item);
+				});
+				document.getElementById("right").innerHTML = "";
+				this.right.forEach(function(item) {
+					document.getElementById("right").appendChild(item);
+				});
+			}
 			
 			/*
 			* Arguments:
@@ -88,20 +107,19 @@
 			*  - cleanup: Function to call when drawer is destroyed
 			*/
 			function Drawer(options, setup, cleanup) {
+				Extendable.call(this);
 				(options == null) ? (this.options = []) : (this.options = options);
 				(setup == null) ? (this.setup = function() {}) : (this.setup = setup);
 				(cleanup == null) ? (this.cleanup = function() {}) : (this.cleanup = cleanup);
-				this.extend = function(func, code) {
-					this[func] = code;
-				};
-				this.render = function() {
-					document.getElementById("drawerTabs").innerHTML = "";
-					this.options.forEach(function (e) {
-						document.getElementById("drawerTabs").appendChild(e);
-					});
-				}
 			}
-			
+			Drawer.prototype = new Extendable();
+			Drawer.prototype.constructor = Drawer;
+			Drawer.prototype.render = function() {
+				document.getElementById("drawerTabs").innerHTML = "";
+				this.options.forEach(function (e) {
+					document.getElementById("drawerTabs").appendChild(e);
+				});
+			}
 			
 			//All around utils
 			var util = {
@@ -160,17 +178,18 @@
 			util.addCSS("css/bootstrap.css");
 			util.addCSS("css/bootstrap-theme.css");
 			util.addCSS("css/signin.css");
-			//Load jQuery first, then block until it finishes loading
+			//Load jQuery first, then block for all dependencies until they are loaded
 			util.addScript("scripts/jquery.min.js");
 			(function() {
-				function blockLoadBootStrap() {
+				function blockLoadjQueryDeps() {
 					if (typeof $ == "function") {
 						util.addScript("scripts/bootstrap.min.js");
+						util.addScript("scripts/jquery.touchwipe.min.js");
 					} else {
-						setTimeout(blockLoadBootStrap, 50);
+						setTimeout(blockLoadjQueryDeps, 50);
 					}
 				}
-				blockLoadBootStrap();
+				blockLoadjQueryDeps();
 			})();
 			
 			
@@ -248,7 +267,7 @@
 			});
 
 			//main menu layout
-			var main = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="return false;"><button class="btn btn-lg btn-primary btn-block" onclick="main.requestCharData()">Character Data</button><button class="btn btn-lg btn-primary btn-block" onclick="main.requestInventory()">Inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.findInInventory()">Find in inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.showMall()">Search Mall</button></form></div></div>');
+			var main = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="return false;"><button class="btn btn-lg btn-primary btn-block" onclick="main.requestCharData()">Character Data</button><button class="btn btn-lg btn-primary btn-block" onclick="main.requestInventory()">Inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.findInInventory()">Find in inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.showMall()">Search Mall</button><button class="btn btn-lg btn-primary btn-block" onclick="main.showChat();">Enter Chat</button></form></div></div>');
 			main.extend("requestCharData", function() {
 					droid.eventPost("charData", "");
 			});
@@ -264,27 +283,58 @@
 			main.extend("showMall", function() {
 				util.showLayout(mall);
 			});
-			
+			main.extend("showChat", function() {
+				util.showLayout(chat);
+			});
 			//chat layout
-			var chat = new Layout('<div class="wrap"><select class="select form-control" id="chanselect"></select></div>', function() {this.timedChatGet = setInterval(this.requestNewChats(), 2000);}, function() {clearInterval(this.timedChatGet);}, null, util.defaultSubpageDrawer);
+			var chat = new Layout('<div class="wrap container" style="height:100%;padding-top:20px;"><select class="select form-control" id="chanselect" style="width:100%"></select><div id="chatpane" style="height:95%;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;overflow:scroll;"></div><div class="container"><input type="text" style="width:90%" /><button style="width:10%;">Chat</button></div>', function() {this.timedChatGet = setInterval(this.requestNewChats(function() {this.processChats();this.displayChats();}), 2000);this.setupChannels();}, function() {clearInterval(this.timedChatGet);}, null, util.defaultSubpageDrawer);
 			chat.extend("timedChatGet", null);
+			chat.extend("chats", new Array());
 			chat.extend("requestNewChats", function(callback) {
-				droid.eventPost("getNewChat", "")
+				droid.eventPost("getNewChat", "");
 				droid.registerCallback("getNewChatResult", function(e) {
 					callback(JSON.parse(e.data));
 				});
 			});
 			chat.extend("displayChats", function(chats) {
-				// TODO: Add this in after layout is complete
+				this.processChats(chats);
+				for (var chatMsg in this.chats) {
+					this.renderChat(chatMsg);
+				}
+				this.scrollDown();
+			});
+			chat.extend("processChats", function(chats) {
+				for (var chatMsg in chats) {
+					this.chats.push(chatMsg);
+				}
+			});
+			chat.extend("renderChat", function(chatMsg) {
+				var div = document.createElement("div");
+				if ("channel" in chatMsg) {
+					div.innerHTML += "[" + chatMsg.channel + "] ";
+				}
+				div.innerHTML += chatMsg.userName + ": " + chatMsg.text;
+				$("#chatpane")[0].appendChild(div);
 			});
 			chat.extend("sendChat", function(chat) {
-				droid.objectPost("sendChat", {"message": chat, "channel": ""});
+				droid.objectPost("sendChat", {"message": chat, "channel": $("chanselect").val()});
 				droid.registerCallback("sendChatResult", function(e) {
 					if (e.data == "success") {
 						chat.requestNewChats();
 					} else {
 						droid.eventPost("makeToast", "Failed to send chat message.");
 					}
+				});
+			});
+			chat.extend("scrollDown", function() {
+				if ($("#chatpane").scrollTop() == $("#chatpane")[0].scrollHeight - $("#chatpane")[0].clientHeight) {
+					$("#chatpane")[0].scrollTop = $("#chatpane")[0].scrollHeight - $("#chatpane")[0].clientHeight;
+				}
+			});
+			chat.extend("setupChannels", function() {
+				var channels = ["clan", "dev", "foodcourt", "games", "haiku", "hardcore", "harem", "hobopolis", "kwe", "lounge", "mod", "newbie", "normal", "pvp", "radio", "slimetube", "trade", "valhalla", "veteran", "villa"];
+				channels.forEach(function(channel) {
+					$("#chanselect").append("<option value='" + channel + "'>" + channel + "</option>");
 				});
 			});
 			chat.extend("mainMenu", function() {
@@ -316,10 +366,17 @@
 			
 			window.onload = function() {
 				util.showLayout(login);
+				$("body").touchwipe({
+					wipeLeft: function() {$("#drawer")[0].style.display = "block";},
+					wipeRight: function() {$("#drawer")[0].style.display = "none";},
+					min_move_x: 30,
+					min_move_y: 30,
+					preventDefaultEvents: true
+				});
 			};
 		</script>
 	</head>
-	<body>
+	<body style="height:100%">
 		<header id="action-bar">
 			<ul id="left">
 			</ul>

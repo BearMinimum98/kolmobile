@@ -153,8 +153,7 @@ def mainloop():
 		elif id == "sendChat":
 			try:
 				data = json.loads(event["data"])
-				chatMgr["currentChannel"] = data["channel"]
-				chatMgr.sendChatMessage(data["message"])
+				chatMgr.sendChatMessage("/" + data["channel"] + " " + data["message"])
 				droid.eventPost("sendChatResult", "success")
 			except Error as e:
 				droid.eventPost("sendChatResult", "fail")
