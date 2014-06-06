@@ -9,9 +9,24 @@
 			//For testing on computer without the Android constructor
 			if (typeof Android == "undefined") {
 				window["Android"] = function() {
-					this.eventPost = function() {};
+					this.events = 0;
+					this.callBacks = {};
+					this.eventPost = function(foo, bar) {
+						console.log("Android.eventPost: " + foo + " " + bar);
+						if (foo in this.callBacks) {
+							console.log("Callback called for " + foo);
+							var data = {
+								"data": bar,
+								"id": this.events++
+							};
+							this.callBacks[foo](data);
+						}
+					};
 					this.eventWaitFor = function() {return {result: {data: "C:\\Users\\Kevin\\Documents\\GitHub\\kolmobile\\src"}};};
-					this.registerCallback = function(foo, bar) {};
+					this.registerCallback = function(foo, bar) {
+						this.callBacks[foo] = bar;
+					};
+					this.makeToast = function(foo) {console.log(foo);};
 				};
 			}
 			var droid = new Android();
@@ -375,7 +390,9 @@
 				});
 				droid.registerCallback("sendChatResult", function(e) {
 					if (e.data != "success") {
-						droid.eventPost("makeToast", "Failed to send chat message.");
+						droid.makeToast("Failed to send chat message.");
+					} else {
+						droid.makeToast("Success");
 					}
 				});
 				droid.registerCallback("loginResult", function(e) {
