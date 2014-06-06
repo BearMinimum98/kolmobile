@@ -35,6 +35,16 @@
 				droid.eventPost(name, JSON.stringify(obj));
 			};
 			
+			/*
+			* General base class for classes that can be extended with additional functions after instantiation.
+			* Extendable.extend(functionName, functionCode)
+			* //example
+			* var e = new Extendable();
+			* e.extend("foo", function() {console.log("bar")});
+			* //call the function here
+			* e.foo();
+			* //will output "bar" in the console.
+			*/
 			function Extendable() {}
 			Extendable.prototype.extend = function(func, code) {
 				this[func] = code;
@@ -47,12 +57,8 @@
 			*  - setup: This is the function that is called after the layout is changed, so the layout may add event handlers and the like. Should never be called directly.
 			*  - cleanup: This is the function called when the layout is destroyed. It is here for cleanup work, such as removing event handlers and ending timers. Should never be called directly.
 			* Layouts can be extended with functions or variables by calling extend. Example:
-			* var example = new Layout();
-			* example.extend("functionName", function(arg1, arg2) {
-			* 	//code here
-			* });
-			* //call the function here
-			* example.functionName("foo", "bar");
+			* var example = new Layout("", function() {alert("hi")}, function() {alert("bye")});
+			* // Will alert "hi" when shown and "bye" when destroyed
 			*
 			* Arguments:
 			*  - layout: HTML code for the view
