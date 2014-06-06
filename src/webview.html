@@ -121,6 +121,19 @@
 				});
 			}
 			
+			
+			/*
+			* Arguments:
+			*  - channel: (String) the channel of which the message was sent
+			*  - username: (String) username that sent the message
+			*  - text: (String) the text of the message
+			*/
+			function ChatMessage(channel, username, text) {
+				this.channel = channel;
+				this.userName = username;
+				this.text = text;
+			}
+			
 			//All around utils
 			var util = {
 				lastLayout: new Layout(null, null, null, new ActionBar(), new Drawer()),
@@ -185,6 +198,7 @@
 					if (typeof $ == "function") {
 						util.addScript("scripts/bootstrap.min.js");
 						util.addScript("scripts/jquery.touchwipe.min.js");
+						window.isLoaded = true;
 					} else {
 						setTimeout(blockLoadjQueryDeps, 50);
 					}
@@ -254,20 +268,13 @@
 			
 			
 			//Login layout
-			var login = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="login.handleLogin();return false;"><h2 class="form-signin-heading" id="banner">KoLMobile</h2><input type="text" class="textfield form-control" placeholder="username" required="required" autofocus="autofocus" id="user" autocomplete="off" spellcheck="false" /><input type="password" class="textfield form-control" placeholder="password" required="required" id="pass" /><button class="btn btn-lg btn-primary btn-block" type="submit">Login</button></form></div></div>');
+			var login = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="login.handleLogin();return false;"><h2 class="form-signin-heading" id="banner">KoLMobile</h2><input type="text" class="textfield form-control" placeholder="username" required="required" autofocus="autofocus" id="user" autocomplete="off" spellcheck="false" /><input type="password" class="textfield form-control" placeholder="password" required="required" id="pass" /><label for="silent"><input id="silent" type="checkbox" /> Silent Login</label><button class="btn btn-lg btn-primary btn-block" type="submit">Login</button></form></div></div>');
 			login.extend("handleLogin", function() {
 				droid.objectPost("login", {"user": document.getElementById("user").value, "pass": document.getElementById("pass").value});
-				droid.registerCallback("loginResult", function(e) {
-					if (e.data == "success") {
-						util.showLayout(main);
-					} else {
-						alert("Login failed.");
-					}
-				});
 			});
 
 			//main menu layout
-			var main = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="return false;"><button class="btn btn-lg btn-primary btn-block" onclick="main.requestCharData()">Character Data</button><button class="btn btn-lg btn-primary btn-block" onclick="main.requestInventory()">Inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.findInInventory()">Find in inventory</button><button class="btn btn-lg btn-primary btn-block" onclick="main.showMall()">Search Mall</button><button class="btn btn-lg btn-primary btn-block" onclick="main.showChat();">Enter Chat</button></form></div></div>');
+			var main = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="return false;"><button class="btn btn-lg btn-default btn-block" onclick="main.requestCharData()">Character Data</button><button class="btn btn-lg btn-default btn-block" onclick="main.requestInventory()">Inventory</button><button class="btn btn-lg btn-default btn-block" onclick="main.findInInventory()">Find in inventory</button><button class="btn btn-lg btn-default btn-block" onclick="main.showMall()">Search Mall</button><button class="btn btn-lg btn-default btn-block" onclick="main.showChat();">Enter Chat</button></form></div></div>');
 			main.extend("requestCharData", function() {
 					droid.eventPost("charData", "");
 			});
@@ -287,53 +294,39 @@
 				util.showLayout(chat);
 			});
 			//chat layout
-			var chat = new Layout('<div class="wrap container" style="height:100%;padding-top:20px;"><select class="select form-control" id="chanselect" style="width:100%"></select><div id="chatpane" style="height:95%;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;overflow:scroll;"></div><div class="container"><input type="text" style="width:90%" /><button style="width:10%;">Chat</button></div>', function() {this.timedChatGet = setInterval(this.requestNewChats(function() {this.processChats();this.displayChats();}), 2000);this.setupChannels();}, function() {clearInterval(this.timedChatGet);}, null, util.defaultSubpageDrawer);
+			var chat = new Layout('<div class="wrap container" style="height:100%;padding-top:20px;"><select class="select form-control" id="chanselect" style="width:100%"></select><div id="chatpane" style="height:95%;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;overflow:scroll;"></div><div class="container"><input type="text" style="width:90%" id="msg" /><button style="width:10%;" onclick="chat.sendChat($(\'#msg\').val())">Chat</button></div>', function() {
+				chat.timedChatGet = setInterval(function() {
+					chat.requestNewChats();
+				}, 2000);
+				this.setupChannels();
+			}, function() {
+				clearInterval(chat.timedChatGet);
+			}, null, util.defaultSubpageDrawer);
 			chat.extend("timedChatGet", null);
-			chat.extend("chats", new Array());
 			chat.extend("requestNewChats", function(callback) {
 				droid.eventPost("getNewChat", "");
-				droid.registerCallback("getNewChatResult", function(e) {
-					callback(JSON.parse(e.data));
-				});
 			});
 			chat.extend("displayChats", function(chats) {
-				this.processChats(chats);
-				for (var chatMsg in this.chats) {
-					this.renderChat(chatMsg);
-				}
-				this.scrollDown();
-			});
-			chat.extend("processChats", function(chats) {
-				for (var chatMsg in chats) {
-					this.chats.push(chatMsg);
-				}
+				chats.forEach(function(chatMsg) {
+					chat.renderChat(chatMsg);
+				});
+				chat.scrollDown();
 			});
 			chat.extend("renderChat", function(chatMsg) {
-				var div = document.createElement("div");
-				if ("channel" in chatMsg) {
-					div.innerHTML += "[" + chatMsg.channel + "] ";
-				}
-				div.innerHTML += chatMsg.userName + ": " + chatMsg.text;
-				$("#chatpane")[0].appendChild(div);
+				$("#chatpane")[0].innerHTML += "<div>[" + chatMsg.channel + "] " + chatMsg.userName + ": " + chatMsg.text + "</div>";
 			});
-			chat.extend("sendChat", function(chat) {
-				droid.objectPost("sendChat", {"message": chat, "channel": $("chanselect").val()});
-				droid.registerCallback("sendChatResult", function(e) {
-					if (e.data == "success") {
-						chat.requestNewChats();
-					} else {
-						droid.eventPost("makeToast", "Failed to send chat message.");
-					}
-				});
+			chat.extend("sendChat", function(chatMsg) {
+				droid.objectPost("sendChat", {"message": chatMsg, "channel": $("#chanselect").val()});
+				$("#msg").val("");
+				chat.renderChat(new ChatMessage($("#chanselect").val(), "You", chatMsg));
 			});
 			chat.extend("scrollDown", function() {
-				if ($("#chatpane").scrollTop() == $("#chatpane")[0].scrollHeight - $("#chatpane")[0].clientHeight) {
+				// if ($("#chatpane").scrollTop() == $("#chatpane")[0].scrollHeight - $("#chatpane")[0].clientHeight) {
 					$("#chatpane")[0].scrollTop = $("#chatpane")[0].scrollHeight - $("#chatpane")[0].clientHeight;
-				}
+				// }
 			});
 			chat.extend("setupChannels", function() {
-				var channels = ["clan", "dev", "foodcourt", "games", "haiku", "hardcore", "harem", "hobopolis", "kwe", "lounge", "mod", "newbie", "normal", "pvp", "radio", "slimetube", "trade", "valhalla", "veteran", "villa"];
-				channels.forEach(function(channel) {
+				["clan", "dev", "foodcourt", "games", "haiku", "hardcore", "harem", "hobopolis", "kwe", "lounge", "mod", "newbie", "normal", "pvp", "radio", "slimetube", "trade", "valhalla", "veteran", "villa"].forEach(function(channel) {
 					$("#chanselect").append("<option value='" + channel + "'>" + channel + "</option>");
 				});
 			});
@@ -345,6 +338,27 @@
 			var mall = new Layout('<div class="wrap"><div class="container"><form class="form-signin" role="form" onsubmit="mall.searchMall(document.getElementById(\'search\').value);return false;"><h2 class="form-signin-heading" id="banner">Search Mall</h2><input type="text" class="textfield form-control" placeholder="search" required="required" autofocus="autofocus" id="search" autocomplete="off" spellcheck="false" /><button class="btn btn-lg btn-primary btn-block" type="submit">Search!</button></form></div><div class="container" id="result"><form class="form-signin" role="form" onsubmit="try{mall.buyItem();return false;}catch(e) {return false;}"><select id="selector" required="required" class="select form-control"><option>-Select an item-</option></select><button class="btn btn-lg btn-primary btn-block" type="submit">Buy</button></form></div></div>', null, null, null, util.defaultSubpageDrawer);
 			mall.extend("searchMall", function(item) {
 				droid.eventPost("searchMall", item);
+			});
+			mall.extend("buyItem", function() {
+				droid.eventPost("buyMall", document.getElementById('selector')[document.getElementById('selector').selectedIndex].value);
+			});
+			
+			window.onload = function() {
+				if (window.isLoaded == true) {
+					util.showLayout(login);
+					$("body").touchwipe({
+						wipeLeft: function() {$("#drawer")[0].style.display = "none";},
+						wipeRight: function() {$("#drawer")[0].style.display = "block";},
+						min_move_x: 100,
+						min_move_y: 100,
+						preventDefaultEvents: true
+					});
+				} else {
+					setTimeout(window.onload, 50);
+				}
+				droid.registerCallback("getNewChatResult", function(e) {
+					chat.displayChats(JSON.parse(e.data));
+				});
 				droid.registerCallback("searchMallResult", function(e) {
 					document.getElementById("selector").innerHTML = "";
 					response = JSON.parse(e.data)["results"];
@@ -359,19 +373,17 @@
 						document.getElementById("selector").appendChild(option);
 					});
 				});
-			});
-			mall.extend("buyItem", function() {
-				droid.eventPost("buyMall", document.getElementById('selector')[document.getElementById('selector').selectedIndex].value);
-			});
-			
-			window.onload = function() {
-				util.showLayout(login);
-				$("body").touchwipe({
-					wipeLeft: function() {$("#drawer")[0].style.display = "block";},
-					wipeRight: function() {$("#drawer")[0].style.display = "none";},
-					min_move_x: 30,
-					min_move_y: 30,
-					preventDefaultEvents: true
+				droid.registerCallback("sendChatResult", function(e) {
+					if (e.data != "success") {
+						droid.eventPost("makeToast", "Failed to send chat message.");
+					}
+				});
+				droid.registerCallback("loginResult", function(e) {
+					if (e.data == "success") {
+						util.showLayout(main);
+					} else {
+						alert("Login failed.");
+					}
 				});
 			};
 		</script>
