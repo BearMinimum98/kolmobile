@@ -12,12 +12,13 @@
 					this.events = 0;
 					this.callBacks = {};
 					this.eventPost = function(foo, bar) {
+						this.events++;
 						console.log("Android.eventPost: " + foo + " " + bar);
 						if (foo in this.callBacks) {
 							console.log("Callback called for " + foo);
 							var data = {
 								"data": bar,
-								"id": this.events++
+								"id": this.events
 							};
 							this.callBacks[foo](data);
 						}
