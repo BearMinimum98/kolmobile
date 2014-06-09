@@ -61,11 +61,11 @@
 			* // Will alert "hi" when shown and "bye" when destroyed
 			*
 			* Arguments:
-			*  - layout: HTML code for the view
-			*  - setup: Function to call when layout is rendered
-			*  - cleanup: Function to call when layout is destroyed
-			*  - actionBar: action bar to use for this layout, if null, default will be used
-			*  - drawer: drawer to use for this layout, if null, default will be used
+			*  - layout: (String) HTML code for the view
+			*  - setup: (Function) to call when layout is rendered
+			*  - cleanup: (Function) to call when layout is destroyed
+			*  - actionBar: (ActionBar) action bar to use for this layout, if null, default will be used
+			*  - drawer: (Drawer) drawer to use for this layout, if null, default will be used
 			*/
 			function Layout(layout, setup, cleanup, actionBar, drawer) {
 				Extendable.call(this);
@@ -85,11 +85,12 @@
 			}
 			
 			/*
+			* Constructor for making an ActionBar (top of page)
 			* Arguments:
-			*  - left: Array of HTMLLiElements for left part of action bar
-			*  - right: Array of HTMLLiElements for right part of action bar
-			*  - setup: Function to call when layout is rendered
-			*  - cleanup: Function to call when layout is destroyed
+			*  - left: (HTMLLiElements[]) for left part of action bar
+			*  - right: (HTMLLiElements[]) for right part of action bar
+			*  - setup: (Function) to call when layout is rendered
+			*  - cleanup: (Function) to call when layout is destroyed
 			*/
 			function ActionBar(left, right, setup, cleanup) {
 				Extendable.call(this);
@@ -123,10 +124,11 @@
 			}
 			
 			/*
+			* Constructor for making a drawer (menu)
 			* Arguments:
-			*  - options: Array of HTMLLiElements for when the drawer is opened
-			*  - setup: Function to call when drawer is rendered
-			*  - cleanup: Function to call when drawer is destroyed
+			*  - options: (HTMLLiElements[]) for when the drawer is opened
+			*  - setup: (Function) to call when drawer is rendered
+			*  - cleanup: (Function) to call when drawer is destroyed
 			*/
 			function Drawer(options, setup, cleanup) {
 				Extendable.call(this);
@@ -145,6 +147,7 @@
 			
 			
 			/*
+			* object to represent a chat message
 			* Arguments:
 			*  - channel: (String) the channel of which the message was sent
 			*  - username: (String) username that sent the message
@@ -190,13 +193,13 @@
 				},
 				addScript: function(url) {
 					var ele = document.createElement("script");
-					ele.src = ((util.sysPath != undefined) ? (util.sysPath) : ('')) + url;
+					ele.src = (util.sysPath ? util.sysPath : '') + url;
 					ele.type = "text/javascript";
 					document.head.appendChild(ele);
 				},
 				addCSS: function(url) {
 					var ele = document.createElement("link");
-					ele.href = ((util.sysPath != undefined) ? (util.sysPath) : ('')) + url;
+					ele.href = (util.sysPath ? util.sysPath : '') + url;
 					ele.type = "text/css";
 					ele.rel = "stylesheet";
 					document.head.appendChild(ele);
@@ -220,6 +223,21 @@
 					if (typeof $ == "function") {
 						util.addScript("scripts/bootstrap.min.js");
 						util.addScript("scripts/jquery.touchwipe.min.js");
+						jQuery.fn.slideLeftHide = function( speed, callback ) {
+							this.animate({ 
+								width: "hide", 
+								marginLeft: "hide", 
+								marginRight: "hide" 
+							}, speed, callback ); 
+						};
+							
+						jQuery.fn.slideLeftShow = function( speed, callback ) { 
+							this.animate( { 
+								width: "show", 
+								marginLeft: "show", 
+								marginRight: "show" 
+							}, speed, callback ); 
+						};
 						window.isLoaded = true;
 					} else {
 						setTimeout(blockLoadjQueryDeps, 50);
@@ -249,18 +267,25 @@
 				rights.push(child);
 				actionBar = new ActionBar(lefts, rights, function() {
 					document.getElementById("openDrawer").onclick = function() {
-						$("#drawer").toggle();
+						actionBar.toggle();
 					};
 					document.getElementById("appIcon").onclick = function() {
-						$("#drawer").toggle();
+						actionBar.toggle();
 					};
 					document.getElementById("appName").onclick = function() {
-						$("#drawer").toggle();
+						actionBar.toggle();
 					};
 				}, function() {
 					document.getElementById("openDrawer").onclick = null;
 					document.getElementById("appIcon").onclick = null;
 					document.getElementById("appName").onclick = null;
+				});
+				actionBar.extend("toggle", function() {
+					if ($("#drawer").is(":visible")) {
+						$("#drawer").slideLeftHide(400);
+					} else {
+						$("#drawer").slideLeftShow();
+					}
 				});
 				util.defaultActionBar = actionBar;
 				child = document.createElement("li");
@@ -275,13 +300,11 @@
 			(function() {
 				var child = document.createElement("li");
 				child.onclick = function() {
-					$("#drawer").toggle();
 					util.showLayout(main);
 				};
 				child.innerHTML = "Back";
 				var child2 = document.createElement("li");
 				child2.onclick = function() {
-					$("#drawer").toggle();
 					util.exit();
 				};
 				child2.innerHTML = 'Exit';
@@ -316,7 +339,8 @@
 				util.showLayout(chat);
 			});
 			//chat layout
-			var chat = new Layout('<div class="wrap container" style="height:100%;padding-top:20px;"><select class="select form-control" id="chanselect" style="width:100%"></select><div id="chatpane" style="height:95%;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;overflow:scroll;"></div><div class="container"><input type="text" style="width:90%" id="msg" /><button style="width:10%;" onclick="chat.sendChat($(\'#msg\').val())">Chat</button></div>', function() {
+			var chat = new Layout('<div class="wrap container" style="height:100%;padding-top:20px;"><select class="select form-control" id="chanselect" style="width:100%"></select><div id="chatpane" style="height:95%;-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;overflow:scroll;"></div><div class="container"><form onsubmit="chat.sendChat($(\'#msg\').val());return false;"><input type="text" style="width:90%" id="msg" /><button style="width:10%;" type="submit">Chat</button></form></div>', function() {
+				alert("By using chat, you acknoledge that it is buggy, and messages may or may not be actually sent/received.");
 				chat.timedChatGet = setInterval(function() {
 					chat.requestNewChats();
 				}, 2000);
@@ -338,13 +362,18 @@
 				$("#chatpane")[0].innerHTML += "<div>[" + chatMsg.channel + "] " + chatMsg.userName + ": " + chatMsg.text + "</div>";
 			});
 			chat.extend("sendChat", function(chatMsg) {
-				droid.objectPost("sendChat", {"message": chatMsg, "channel": $("#chanselect").val()});
-				$("#msg").val("");
-				chat.renderChat(new ChatMessage($("#chanselect").val(), "You", chatMsg));
+				if (chatMsg != "" && !/^( )+$/.test(chatMsg)) {
+					droid.objectPost("sendChat", {"message": chatMsg, "channel": $("#chanselect").val()});
+					$("#msg").val("");
+					chat.renderChat(new ChatMessage($("#chanselect").val(), "You", chatMsg));
+				} else {
+					$("#msg").val("");
+				}
 			});
 			chat.extend("scrollDown", function() {
+				droid.log("scrollDown()");
 				// if ($("#chatpane").scrollTop() == $("#chatpane")[0].scrollHeight - $("#chatpane")[0].clientHeight) {
-					$("#chatpane")[0].scrollTop = $("#chatpane")[0].scrollHeight - $("#chatpane")[0].clientHeight;
+				//	$("#chatpane")[0].scrollTop = $("#chatpane")[0].scrollHeight - $("#chatpane")[0].clientHeight;
 				// }
 			});
 			chat.extend("setupChannels", function() {
