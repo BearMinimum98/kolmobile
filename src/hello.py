@@ -64,6 +64,7 @@ def alertNotLoggedIn(exit):
 		droid.dialogCreateAlert("Not logged in", "You are no longer connected to the server.")
 		droid.dialogSetPositiveButtonText("Close")
 		droid.dialogShow()
+		droid.eventPost("executeJS", "util.showLayout(login)")
 		sys.exit()
 		return
 

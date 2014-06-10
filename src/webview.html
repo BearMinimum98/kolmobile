@@ -77,12 +77,9 @@
 			}
 			Layout.prototype = new Extendable();
 			Layout.prototype.constructor = Layout;
-			Layout.prototype.extend = function(func, code) {
-				this[func] = code;
-			};
 			Layout.prototype.render = function() {
 				document.getElementById("container").innerHTML = this.layout;
-			}
+			};
 			
 			/*
 			* Constructor for making an ActionBar (top of page)
@@ -121,7 +118,7 @@
 				this.right.forEach(function(item) {
 					document.getElementById("right").appendChild(item);
 				});
-			}
+			};
 			
 			/*
 			* Constructor for making a drawer (menu)
@@ -143,7 +140,7 @@
 				this.options.forEach(function (e) {
 					document.getElementById("drawerTabs").appendChild(e);
 				});
-			}
+			};
 			
 			
 			/*
@@ -284,7 +281,7 @@
 					if ($("#drawer").is(":visible")) {
 						$("#drawer").slideLeftHide(400);
 					} else {
-						$("#drawer").slideLeftShow();
+						$("#drawer").slideLeftShow(400);
 					}
 				});
 				util.defaultActionBar = actionBar;
@@ -391,15 +388,15 @@
 				droid.eventPost("searchMall", item);
 			});
 			mall.extend("buyItem", function() {
-				droid.eventPost("buyMall", document.getElementById('selector')[document.getElementById('selector').selectedIndex].value);
+				droid.eventPost("buyMall", $('#selector').val());
 			});
 			
 			window.onload = function() {
 				if (window.isLoaded == true) {
 					util.showLayout(login);
 					$("body").touchwipe({
-						wipeLeft: function() {$("#drawer")[0].style.display = "none";},
-						wipeRight: function() {$("#drawer")[0].style.display = "block";},
+						wipeLeft: function() {$("#drawer").slideLeftHide(400);},
+						wipeRight: function() {$("#drawer").slideLeftShow(400);},
 						min_move_x: 100,
 						min_move_y: 100,
 						preventDefaultEvents: true
@@ -437,6 +434,9 @@
 					} else {
 						alert("Login failed.");
 					}
+				});
+				droid.registerCallback("executeJS", function(e) {
+					eval(e.data);
 				});
 			};
 		</script>
