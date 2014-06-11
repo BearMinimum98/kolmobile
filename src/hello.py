@@ -11,14 +11,35 @@ from kol.manager.ChatManager import ChatManager
 droid = android.Android()
 s = Session()
 charMgr = None
-def eventloop():
+def objectPost(name, obj):
+	droid.eventPost(name, json.dumps(obj))
+
+def alertNotLoggedIn(exit):
+	global s, chatMgr
+	if exit:
+		droid.dialogCreateAlert("Not logged in", "You are no longer connected to the server. KoLDroid will now quit.")
+		droid.dialogSetPositiveButtonText("Quit")
+		droid.dialogShow()
+		response = droid.dialogGetResponse().result
+		sys.exit()
+		return
+	else:
+		droid.dialogCreateAlert("Not logged in", "You are no longer connected to the server.")
+		droid.dialogSetPositiveButtonText("Close")
+		droid.dialogShow()
+		droid.eventPost("executeJS", "util.showLayout(login)")
+		s = Session()
+		chatMgr = None
+
+def mainloop():
 	global s
 	global chatMgr
 	while True:
 		event = droid.eventWait().result
-		if event["name"] == "key" and event["data"]["key"] == "4":
+		id = event["name"]
+		if id == "key" and event["data"]["key"] == "4":
 			return
-		if event["name"] == "login":
+		if id == "login":
 			try:
 				title = "Logging in..."
 				message = 'KoL for Android is logging you in...'
@@ -39,45 +60,16 @@ def eventloop():
 				except:
 					droid.eventPost("login", "fail")
 				finally:
-					droid.dialogDismiss()
+					if s.isConnected:
+						droid.dialogDismiss()
+					else:
+						alertNotLoggedIn(False)
 			except:
 				droid.dialogDismiss()
-		elif event["name"] == "requestLoginInfo":
+				alertNotLoggedIn(False)
+		elif id == "requestLoginInfo":
 			objectPost("loginInfo", {"user": droid.prefGetValue("user"), "pass": droid.prefGetValue("pass")})
-			droid.eventPost("sysPath", sys.path[0])
-		elif event["name"] == "exit":
-			sys.exit()
-			return
-
-def objectPost(name, obj):
-	droid.eventPost(name, json.dumps(obj))
-
-def alertNotLoggedIn(exit):
-	if exit:
-		droid.dialogCreateAlert("Not logged in", "You are no longer connected to the server. KoLDroid will now quit.")
-		droid.dialogSetPositiveButtonText("Quit")
-		droid.dialogShow()
-		response = droid.dialogGetResponse().result
-		sys.exit()
-		return
-	else:
-		droid.dialogCreateAlert("Not logged in", "You are no longer connected to the server.")
-		droid.dialogSetPositiveButtonText("Close")
-		droid.dialogShow()
-		droid.eventPost("executeJS", "util.showLayout(login)")
-		sys.exit()
-		return
-
-def mainloop():
-	global s
-	global chatMgr
-	while True:
-		event = droid.eventWait().result
-		if event["name"] == "key" and event["data"]["key"] == "4":
-			return
-			
-		id = event["name"]
-		if id == "makeToast":
+		elif id == "makeToast":
 			droid.makeToast(event["data"])
 		elif id == "charData":
 			droid.dialogCreateSpinnerProgress("Loading", "Loading...")
@@ -209,7 +201,5 @@ droid.webViewShow(sys.path[0] + "/webview.html")
 sysPathEvent = droid.eventWaitFor("getSysPath")
 time.sleep(2)
 droid.eventPost("sysPath", sys.path[0])
-eventloop()
-if s.isConnected:
-	mainloop()
+mainloop()
 sys.exit()
